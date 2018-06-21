@@ -1,0 +1,82 @@
+import requests
+import json
+"""Build Header to pass to FE API (WORKS)"""
+
+params = {"ApiKey": "h*********", "Username": "christopher.graves@h******", "Password": "******"}
+tokenresponse = requests.post("https://sapi.callminer.net/security/getToken", data = params)
+#print(tokenresponse)
+#print(tokenresponse.headers)
+token = tokenresponse.text.strip('"')
+header = {"authorization": "JWT " + token}
+#print(header)
+
+
+#params={"sorted": True}
+"""Call API (WORKING)"""
+#response = requests.get("https://feapi.callminer.net/api/v2/metadata", headers=header, params={"sorted": True})
+#print(response)
+"""Load data to string"""
+#datastring = json.loads(response.text)
+#print(datastring)
+
+"""Test some stuff"""
+#columnlist = []
+#for x in datastring:
+#    columnlist.append(x["ColumnName"])
+#    
+#print(columnlist)
+#
+#print(data.keys())
+
+"""Get data from Complaints/Ensura, 
+and get phone numbers for each complaint based on customer table"""
+
+phonelist = ['5087598201', '6316736724', '7704092424']
+#'6316736724', '7704092424'
+
+"""feed list of phone numbers as parameters to CallMiner, 
+have it spit back the IDs of any calls from those numbers"""
+
+IDlist = {}
+
+for x in phonelist:
+    pagecounter = 1
+    counter = 1
+    stop = False
+    results = {}
+    while stop == False:
+        """Model schema for CallMiner Metasearch"""
+        metasearchparams = { 
+                        "metaField" : 'ANI',
+                        "metaValue" : str(x),
+                        "startDate" : '05/01/2018 00:00',
+                        "stopDate" : '06/20/2018 00:00',
+                        "page" : pagecounter,
+                        "records" : 50
+                        }
+        response = requests.get("https://feapi.callminer.net/api/v2/export/metasearch", headers=header, params=metasearchparams)
+#        print(response.text)
+        datastring = json.loads(response.text)
+        for y in range(0, len(datastring)):
+            results[counter] = datastring[y]['Contact']['Id']
+            counter += 1
+        if len(datastring) != 50:
+            stop = True
+        print(results)
+        print(pagecounter)
+        pagecounter += 1
+    IDlist[x] =  results
+    
+"""Load data to string"""
+#datastring = json.loads(response.text)
+#print(datastring)
+
+print(IDlist) 
+    
+"""appedn those IDs to something (like a date) that allows up to know which complaints it goes with"""
+
+"""Get permissions list from permission api"""
+#response = requests.get("https://feapi.callminer.net/api/v2/permissionlist", headers=header)
+#print(response)
+#datastring = json.loads(response.text)
+#print(datastring)
